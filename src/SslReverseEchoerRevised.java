@@ -1,7 +1,4 @@
-/**
- * SslReverseEchoerRevised.java
- * Copyright (c) 2005 by Dr. Herong Yang
- */
+
 import java.io.*;
 import java.net.*;
 import java.security.*;
