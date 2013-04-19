@@ -30,8 +30,12 @@ public class TCPClient {
 		        	System.out.println("Enter command:");
 		            String echoline = new String();
 		            echoline = stdinp.readLine();
+		            
 		            if (echoline.equals("done")) break;
-		            pout.println(echoline);
+		            else if(echoline.equals("get")) Get(sSocket, "Username", "Filename");
+		            else if(echoline.equals("put")) Put(sSocket, "Username", "Filename", "File contents");
+		           
+		            //pout.println(echoline);
 		            System.out.println("Finished outputting");//debug line
 		            
 		            Socket rSocket = datasocket.accept();
@@ -51,5 +55,14 @@ public class TCPClient {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		} 
+	}
+	
+	private static String Put(Socket s, String username, String filename, String file){
+		//do the communication. assumption is that authentication is complete
+		return "fail";
+	}
+	private static String Get(Socket s, String username, String filename){
+		//do the communication. assumption is that authentication is complete
+		return "fail";
 	}
 }

@@ -1,8 +1,26 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.security.InvalidKeyException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
+
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
 
 
 public class TCPRun extends Thread{
@@ -12,11 +30,13 @@ public class TCPRun extends Thread{
 	BinarySemaphore mutex;
     String com;
     Socket rSocket;
+    byte[] pubKey;
 	
-	public TCPRun(String[] s, BinarySemaphore mt, Socket sock){
+	public TCPRun(String[] s, BinarySemaphore mt, Socket sock, byte[] key){
         rSocket = sock;
 		seats = s;
 		mutex = mt;
+		pubKey = key;
 		try {
 	        BufferedReader din = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			com =  din.readLine();
@@ -27,88 +47,89 @@ public class TCPRun extends Thread{
 	}
 
 	@Override
+	//userid command additional1(filename or username) additional2(file contents as byte string)
+	//do NOT have the file extention on the filename
+	//filename.txt and filename-meta.txt where meta will contain a list of users that have access
+	//both files will be encrypted with server public key 
 	public void run() {
 		System.out.println("Started thread");//debug line
 		String command [];
 		command = com.split(" ");
 		//start of the parsing for commands
-		if(command[0].equals("reserve")){
-			boolean sTaken = false;
-			mutex.P();
-			for (int i = 0; i < seats.length;i++){
-				if (!seats[i].equals(""))
-					seatsTaken++;
-			}
-			if(seatsTaken == seats.length){
-				returnPack("Sold out - No seat available.");
-				sTaken = true;
-			}else{
-				for(int i=0; i<seats.length; ++i){
-					if(!seats[i].equals("") && seats[i].equals(command[1].trim())){
-						returnPack("Seat alraedy booked against the name provided.");
-						sTaken = true;
-					}
-				}
-				if(!sTaken){
-					int i;
-					for(i=0; i<seats.length; ++i){
-						if(seats[i].equals("")){
-							seats[i] = command[1].trim();
-							seatsTaken++;
-							break;
+		if(command[1].equals("get")){
+			File file = new File(command[2]+".txt");
+			File filemeta = new File(command[2] + "-meta.txt");
+			if (file.exists() && filemeta.exists()) {
+				try{
+					String encTextMeta, plainTextMeta, plainText, encText;
+					String metaData[];
+					BufferedReader br = new BufferedReader(new FileReader(command[2]+ "-meta.txt"));
+					encTextMeta = br.readLine();
+					br.close();
+					plainTextMeta = decrypt(encTextMeta,pubKey);
+					metaData = plainTextMeta.split("\n");
+					for(int i=1; i<metaData.length-1; ++i){
+						if(command[0].equals(metaData[i])){
+							BufferedReader br2 = new BufferedReader(new FileReader(command[2]+ ".txt"));
+							encText = br2.readLine();
+							br2.close();
+							plainText = decrypt(encText,metaData[0].getBytes());
+							returnPack(plainText);
 						}
 					}
-					returnPack("Seat assigned to you is " + i);
-				}
-			}mutex.V();
-		}else if(command[0].equals("bookSeat")){
-			int seatNum = Integer.parseInt(command[2].trim());
-			boolean sTaken = false;
-			mutex.P();
-			for(int i=0; i<seats.length; ++i){
-				if(!seats[i].equals("") && seats[i].equals(command[1].trim())){
-					returnPack("Seat alraedy booked against the name provided.");
-					sTaken = true;
+				} catch (Exception e){
+					
 				}
 			}
-			if(seats[seatNum].equals("") && !sTaken){
-				seatsTaken++;
-				seats[seatNum] = command[1];
-				returnPack(seatNum + " is available.");
-			}else if(!sTaken){
-				returnPack(seatNum + " is not available.");
+		}else if(command[1].equals("put")){
+			try{
+				String encText;
+				String encMeta;
+				byte[] hash = hasher(command[3]);
+
+				//encrypt the file and the meta file
+				encText = encrypt(command[3], hash);
+				encMeta = encrypt(hash.toString() + "\n" + command[0], pubKey);
+
+				File file = new File(command[2]+".txt");
+				File filemeta = new File(command[2] + "-meta.txt");
+				if (!file.exists()) {
+					file.createNewFile();
+				}
+				if (!filemeta.exists()) {
+					filemeta.createNewFile();
+				}
+				FileWriter fw = new FileWriter(file.getAbsoluteFile());
+				FileWriter fw2 = new FileWriter(filemeta.getAbsoluteFile());
+				BufferedWriter bw = new BufferedWriter(fw);
+				BufferedWriter bw2 = new BufferedWriter(fw2);
+				bw.write(encText);
+				bw2.write(encMeta);
+				bw.close();
+				bw2.close();
+				returnPack("Successfully put " + command[2]);
+			} catch (Exception e){
+				
 			}
-			mutex.V();
-		}else if(command[0].equals("search")){
+		}else if(command[0].equals("delegate")){
 			mutex.P();
-			for(int i=0; i<seats.length; ++i){
-				if(seats[i].equals(command[1].trim())){
-					returnPack(Integer.toString(i));
-					break;
-				}
-				else if(i == seats.length-1)
-				{
-					returnPack("Not found");
-				}
-			}
-//			for (int i = 0; i < seats.length; i++)
-//			{
-//				System.out.print(seats[i]+ ", ");
-//			}
-//			System.out.println();
-			mutex.V();
-		}else if(command[0].equals("delete")){
-			mutex.P();
-			for(int i=0; i<seats.length; ++i){
-				if((seats[i] != null || seats[i].length() == 0) && seats[i].equals(command[1].trim())){
-					seats[i] = "";
-					seatsTaken--;
-					returnPack(command[1].trim() + " was deleted");
-					break;
-				}
-				else if (i == seats.length-1)
-				{
-					returnPack("No reservation found for " + command[1].trim());
+			File filemeta = new File(command[2] + "-meta.txt");
+			if (filemeta.exists()) {
+				try{
+					String encTextMeta, plainTextMeta, encMeta;
+					String metaData[];
+					BufferedReader br = new BufferedReader(new FileReader(command[2]+ "-meta.txt"));
+					encTextMeta = br.readLine();
+					br.close();
+					plainTextMeta = decrypt(encTextMeta,pubKey);
+					plainTextMeta = plainTextMeta + "\n" + command[2];
+					encMeta = encrypt(plainTextMeta, pubKey);
+					FileWriter fileWritter = new FileWriter(filemeta.getName());
+	    	        BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+	    	        bufferWritter.write(encMeta);
+	    	        bufferWritter.close();
+				} catch (Exception e){
+					
 				}
 			}
 			mutex.V();
@@ -127,4 +148,48 @@ public class TCPRun extends Thread{
 			e.printStackTrace();
 		}
 	}
+
+	public String encrypt(String data, byte[] key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException
+	{
+		    String strCipherText = new String();
+
+			SecretKeySpec secretKey = new SecretKeySpec(key, "AES");
+			Cipher aesCipher = Cipher.getInstance("AES");
+
+			aesCipher.init(Cipher.ENCRYPT_MODE,secretKey);
+
+
+			byte[] byteDataToEncrypt = data.getBytes();
+			byte[] byteCipherText = aesCipher.doFinal(byteDataToEncrypt); 
+			strCipherText = new BASE64Encoder().encode(byteCipherText);
+		
+		    return strCipherText;
+	}
+
+	public String decrypt(String cipherText , byte[] key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IOException
+	{
+		    String strDecryptedText= new String();
+        	SecretKeySpec secretKey = new SecretKeySpec(key, "AES");
+			Cipher aesCipher = Cipher.getInstance("AES");
+			aesCipher.init(Cipher.DECRYPT_MODE,secretKey);
+			byte[] byteDecryptedText = aesCipher.doFinal(new BASE64Decoder().decodeBuffer(cipherText));
+			strDecryptedText = new String(byteDecryptedText);
+        	return strDecryptedText;
+	}
+	
+    public static byte[] hasher(String fi) {
+    	byte[] hash = {-1};
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			hash = digest.digest(fi.getBytes("UTF-8"));
+	        
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return hash;
+    }
 }
