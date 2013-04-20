@@ -25,17 +25,12 @@ import sun.misc.BASE64Encoder;
 
 public class TCPRun extends Thread{
 	
-	int seatsTaken = 0;
-	String [] seats;
-	BinarySemaphore mutex;
     String com;
     Socket rSocket;
     byte[] pubKey;
 	
-	public TCPRun(String[] s, BinarySemaphore mt, Socket sock, byte[] key){
+	public TCPRun(Socket sock, byte[] key){
         rSocket = sock;
-		seats = s;
-		mutex = mt;
 		pubKey = key;
 		try {
 	        BufferedReader din = new BufferedReader(new InputStreamReader(sock.getInputStream()));
@@ -112,7 +107,6 @@ public class TCPRun extends Thread{
 				
 			}
 		}else if(command[0].equals("delegate")){
-			mutex.P();
 			File filemeta = new File(command[2] + "-meta.txt");
 			if (filemeta.exists()) {
 				try{
@@ -122,17 +116,21 @@ public class TCPRun extends Thread{
 					encTextMeta = br.readLine();
 					br.close();
 					plainTextMeta = decrypt(encTextMeta,pubKey);
-					plainTextMeta = plainTextMeta + "\n" + command[2];
-					encMeta = encrypt(plainTextMeta, pubKey);
-					FileWriter fileWritter = new FileWriter(filemeta.getName());
-	    	        BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
-	    	        bufferWritter.write(encMeta);
-	    	        bufferWritter.close();
+					metaData = plainTextMeta.split("\n");
+					for(int i=1; i<metaData.length-1; ++i){
+						if(command[0].equals(metaData[i])){
+							plainTextMeta = plainTextMeta + "\n" + command[2];
+							encMeta = encrypt(plainTextMeta, pubKey);
+							FileWriter fileWritter = new FileWriter(filemeta.getName());
+			    	        BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+			    	        bufferWritter.write(encMeta);
+			    	        bufferWritter.close();
+						}
+					}
 				} catch (Exception e){
 					
 				}
 			}
-			mutex.V();
 		}else{
 			returnPack("You made a typo!");
 		}
