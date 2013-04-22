@@ -154,40 +154,15 @@ public class SFSClient {
 		            sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 		            SocketFactory factory = sslContext.getSocketFactory();
 		            SSLSocket client = (SSLSocket)factory.createSocket("localhost",9997);     
-		            client.setNeedClientAuth(true);            
-		            PrintStream socketWriter = new PrintStream(client.getOutputStream ());
-		            logger.info("Client connected");
-		        }
-		        catch(Exception ex)
-		        {
-		            System.out.println(ex.getMessage());
-		            ex.printStackTrace();
-		        }
-			  
-			  //connect to the server
-			  String ksName = args[0];
-				char[] ksPass = args[1].toCharArray();
-				char[] ctPass = args[2].toCharArray();
-				clientName = args[3];
-				System.setProperty("javax.net.ssl.trustStore", args[0]);
-				System.setProperty("javax.net.ssl.trustStorePassword", args[1]);
-				BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-				PrintStream out = System.out;
-				try {
-					KeyStore ks = KeyStore.getInstance("JKS");
-					ks.load(new FileInputStream(ksName), ksPass);
-					KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-					kmf.init(ks, ctPass);
-					SSLContext sc = SSLContext.getInstance("SSL");
-					sc.init(kmf.getKeyManagers(), null, null);
-					SSLSocketFactory f = sc.getSocketFactory();
-					SSLSocket c = (SSLSocket) f.createSocket("localhost", 8888);
-					printSocketInfo(c);
-					c.startHandshake();
+		            client.setNeedClientAuth(true);  
+		            client.startHandshake();
+					BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 					BufferedWriter w = new BufferedWriter(new OutputStreamWriter(
-							c.getOutputStream()));
+							client.getOutputStream()));
 					BufferedReader r = new BufferedReader(new InputStreamReader(
-							c.getInputStream()));			
+							client.getInputStream()));			
+		            logger.info("Client connected");
+//begin handling requests
 					System.out.println("Enter command (get/put/delegate):");
 					String command = in.readLine();
 					if (command.equals("get")) {
@@ -211,14 +186,9 @@ public class SFSClient {
 					} else {
 						System.out.println("Command not recognized!");
 					}
-					/*
-					 * String m = null; while ((m=r.readLine())!= null) {
-					 * out.println(m); m = in.readLine(); w.write(m,0,m.length());
-					 * w.newLine(); w.flush(); }
-					 */
 					w.close();
 					r.close();
-					c.close();
+					client.close();
 				} catch (Exception e) {
 					System.err.println(e.toString());
 				}

@@ -132,66 +132,46 @@ public class SFSServer {
 			}  
 		}
 
-		else
-		{
-			logger.info("Certificate exists : Server Side");
-			int portNumber = 9997;
-            try
-            {     
-            	String serverCert = Properties.serverCertslocation + serverName + ".cer";
-                FileInputStream inputStream = new FileInputStream(serverCert);
-                CertificateFactory cf = CertificateFactory.getInstance("X.509");
-                X509Certificate cert = (X509Certificate) cf.generateCertificate(inputStream);
-              
-                String privKeyFileName = Properties.serverPrivCertslocation + serverName + ".pem";
-                PEMReader kr = new PEMReader(new FileReader(privKeyFileName), null);                         
-                KeyPair key = (KeyPair) kr.readObject();
-                PrivateKey serverPrivateKey = key.getPrivate();
-                PublicKey serverPublicKey = key.getPublic();
-				pubKey = serverPublicKey;
-                KeyStore ksKeys = KeyStore.getInstance("JKS");
-                String ksFile = Properties.serverKeyStoreLocation + "server.jks";
-                ksKeys.load(new FileInputStream(ksFile),args[1].toCharArray());
-                ksKeys.setCertificateEntry("serverCert", cert);                                                
-                ksKeys.setKeyEntry("serverKey", key.getPrivate(),args[1].toCharArray(), new Certificate[]{cert});                        
-                KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-                kmf.init(ksKeys, args[1].toCharArray());
-                TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-                tmf.init(ksKeys);
-                SSLContext sslContext = SSLContext.getInstance("TLS");
-                sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
-                ServerSocketFactory factory = sslContext.getServerSocketFactory();
-                ServerSocket serverSocket = (SSLServerSocket)factory.createServerSocket(9997);  
-                while(true);
-            }
-            catch(Exception ex)
-            {
-                System.out.println(ex.getMessage());
-            }
-            
-            logger.info("Server started at 9997");
-		}
-		
-		//start handeling requests
-		try {
-			KeyStore ks = KeyStore.getInstance("JKS");
+		logger.info("Certificate exists : Server Side");
+		int portNumber = 9997;
+        try
+        {     
+        	String serverCert = Properties.serverCertslocation + serverName + ".cer";
+            FileInputStream inputStream = new FileInputStream(serverCert);
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inputStream);
+          
+            String privKeyFileName = Properties.serverPrivCertslocation + serverName + ".pem";
+            PEMReader kr = new PEMReader(new FileReader(privKeyFileName), null);                         
+            KeyPair key = (KeyPair) kr.readObject();
+            PrivateKey serverPrivateKey = key.getPrivate();
+            PublicKey serverPublicKey = key.getPublic();
+			pubKey = serverPublicKey;
+            KeyStore ksKeys = KeyStore.getInstance("JKS");
             String ksFile = Properties.serverKeyStoreLocation + "server.jks";
-			ks.load(new FileInputStream(ksFile), args[1].toCharArray());
-			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-			kmf.init(ks, args[1].toCharArray());
-			SSLContext sc = SSLContext.getInstance("SSL");
-			sc.init(kmf.getKeyManagers(), null, null);
-			SSLServerSocketFactory ssf = sc.getServerSocketFactory();
-			SSLServerSocket s = (SSLServerSocket) ssf.createServerSocket(8888);
-			s.setNeedClientAuth(true);
-			printServerSocketInfo(s);
+            ksKeys.load(new FileInputStream(ksFile),args[1].toCharArray());
+            ksKeys.setCertificateEntry("serverCert", cert);                                                
+            ksKeys.setKeyEntry("serverKey", key.getPrivate(),args[1].toCharArray(), new Certificate[]{cert});                        
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            kmf.init(ksKeys, args[1].toCharArray());
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(ksKeys);
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+            ServerSocketFactory factory = sslContext.getServerSocketFactory();
+            ServerSocket serverSocket = (SSLServerSocket)factory.createServerSocket(portNumber);  
+            logger.info("Server started at 9997");
 			SSLSocket c;
-			//**********************CHANGE ME PUBLIC KEY*********************
-			byte[] pubicKey = pubKey.getEncoded();
+          //**********************CHANGE ME PUBLIC KEY*********************
+			//byte[] publicKey = pubKey.getEncoded();
+			//byte[] publicKey = "awleiasdfafe".getBytes();
+			byte[] publicKey = hasher(new String(pubKey.getEncoded()));
+			System.out.println("Public Key: " + Arrays.toString(publicKey));
 			//*****************************************************
 
 			while (true) {
-				c = (SSLSocket) s.accept();
+				c = (SSLSocket) serverSocket.accept();
+				logger.info("Server: Accepted a connection");
 				System.out.println("Accepted a connection"); // debug line
 
 				BufferedWriter w = new BufferedWriter(new OutputStreamWriter(c.getOutputStream()));
@@ -217,11 +197,13 @@ public class SFSServer {
 							}
 							br.close();
 							metaData = encTextMeta.split("\n");
-							plainTextMeta = decrypt(metaData[0], pubicKey);
+							plainTextMeta = decrypt(metaData[0], publicKey);
 							metaData[0] = plainTextMeta;
 							System.out.println(Arrays.toString(metaData));//debug line
+							boolean deny=true;
 							for (int i = 1; i < metaData.length; ++i) {
 								if (command[0].equals(metaData[i])) {
+									deny=false;
 									BufferedReader br2 = new BufferedReader(new FileReader(command[2] + ".txt"));
 									encText = br2.readLine();
 									br2.close();
@@ -230,6 +212,12 @@ public class SFSServer {
 									w.newLine();
 									w.flush();
 								}
+							}
+							if(deny){
+								plainText = "You do not have access to this file!";
+								w.write(plainText, 0, plainText.length());
+								w.newLine();
+								w.flush();
 							}
 						} catch (Exception e) {
 
@@ -241,12 +229,14 @@ public class SFSServer {
 						String encText;
 						String encMeta;
 						String fileText = command[3].replaceAll("_", " ");
-						
 						byte[] hash = hasher(fileText);
+						System.out.println("finished hash");//debug line
 						String hashString = new String(hash);
 						// encrypt the file and the meta file
 						encText = encrypt(fileText, hash);
-						encMeta = encrypt(hashString, pubicKey);
+						System.out.println("finished encrypt text");//debug line
+						encMeta = encrypt(hashString, publicKey);
+						System.out.println("finished encrypt meta");//debug line
 						encMeta = encMeta  + "\n" + command[0];
 						File file = new File(command[2] + ".txt");
 						File filemeta = new File(command[2] + "-meta.txt");
@@ -269,7 +259,7 @@ public class SFSServer {
 						w.newLine();
 						w.flush();
 					} catch (Exception e) {
-
+						System.out.println(e.getMessage());
 					}
 				} else if (command[1].equals("delegate")) {
 					System.out.println("Went into delegate");
@@ -286,8 +276,10 @@ public class SFSServer {
 							br.close();
 							metaData = encTextMeta.split("\n");
 							System.out.println("meta: " + Arrays.toString(metaData));//debug line
+							boolean deny = true;
 							for (int i = 1; i < metaData.length; ++i) {
 								if (command[0].equals(metaData[i])) {
+									deny = false;
 									encTextMeta = encTextMeta + "\n" + command[3];
 									FileWriter fileWritter = new FileWriter(filemeta.getName());
 									BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
@@ -299,6 +291,12 @@ public class SFSServer {
 									w.flush();
 								}
 							}
+							if(deny){
+								String plainText = "You do not have access to that file";
+								w.write(plainText, 0, plainText.length());
+								w.newLine();
+								w.flush();
+							}
 						} catch (Exception e) {
 
 						}
@@ -309,10 +307,11 @@ public class SFSServer {
 					w.flush();
 				}
 			}
-
-		} catch (Exception e) {
-			System.err.println(e.toString());
-		}
+        }
+        catch(Exception ex)
+        {
+            System.out.println(ex.getMessage());
+        }
    }
    
    public static String encrypt(String data, byte[] key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
