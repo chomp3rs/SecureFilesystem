@@ -24,6 +24,8 @@ import org.bouncycastle.openssl.PEMReader;
 public class SFSClient {
 
 	private static Logger logger = Logger.getLogger(SFSClient.class);
+	private static String clientName;
+	
 	public static void main(String[] args) {
 	
 		if (args.length<2) {
@@ -32,8 +34,8 @@ public class SFSClient {
 	            "java SFSClient <hostname> <keystorePassword>");
 	         return;
 	      }
-		String clientName = args[0];
-	
+		clientName = args[0];
+		
 		// Check if certificate keystore exists , if not request one from the CA
 		String fileName = Properties.clientCertslocation + clientName + ".cer";
 		if(!(Utilities.checkIfFileExists(fileName)))
@@ -161,9 +163,125 @@ public class SFSClient {
 		            System.out.println(ex.getMessage());
 		            ex.printStackTrace();
 		        }
+			  
+			  //connect to the server
+			  String ksName = args[0];
+				char[] ksPass = args[1].toCharArray();
+				char[] ctPass = args[2].toCharArray();
+				clientName = args[3];
+				System.setProperty("javax.net.ssl.trustStore", args[0]);
+				System.setProperty("javax.net.ssl.trustStorePassword", args[1]);
+				BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+				PrintStream out = System.out;
+				try {
+					KeyStore ks = KeyStore.getInstance("JKS");
+					ks.load(new FileInputStream(ksName), ksPass);
+					KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+					kmf.init(ks, ctPass);
+					SSLContext sc = SSLContext.getInstance("SSL");
+					sc.init(kmf.getKeyManagers(), null, null);
+					SSLSocketFactory f = sc.getSocketFactory();
+					SSLSocket c = (SSLSocket) f.createSocket("localhost", 8888);
+					printSocketInfo(c);
+					c.startHandshake();
+					BufferedWriter w = new BufferedWriter(new OutputStreamWriter(
+							c.getOutputStream()));
+					BufferedReader r = new BufferedReader(new InputStreamReader(
+							c.getInputStream()));			
+					System.out.println("Enter command (get/put/delegate):");
+					String command = in.readLine();
+					if (command.equals("get")) {
+						String comString = get();
+						w.write(comString, 0, comString.length());
+						w.newLine();
+						w.flush();
+						System.out.println(r.readLine());//printout the results returned
+					} else if (command.equals("put")) {
+						String comString = put();
+						w.write(comString, 0, comString.length());
+						w.newLine();
+						w.flush();
+						System.out.println(r.readLine());//printout the results returned
+					} else if (command.equals("delegate")) {
+						String comString = delegate();
+						w.write(comString, 0, comString.length());
+						w.newLine();
+						w.flush();
+						System.out.println(r.readLine());//printout the results returned
+					} else {
+						System.out.println("Command not recognized!");
+					}
+					/*
+					 * String m = null; while ((m=r.readLine())!= null) {
+					 * out.println(m); m = in.readLine(); w.write(m,0,m.length());
+					 * w.newLine(); w.flush(); }
+					 */
+					w.close();
+					r.close();
+					c.close();
+				} catch (Exception e) {
+					System.err.println(e.toString());
+				}
 		        
 		}
 
+	// clientName command additional1(filename or username) additional2(file contents)
+		private static String get() {
+			try {
+				BufferedReader stdinp = new BufferedReader(new InputStreamReader(
+						System.in));
+				System.out
+						.println("Enter filename (do NOT include file extenstion):");
+				String filename = stdinp.readLine();
+				return clientName + " get " + filename.trim();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return "error!";
+			}
+		}
+
+		private static String put() {
+			try {
+				BufferedReader stdinp = new BufferedReader(new InputStreamReader(
+						System.in));
+				System.out
+						.println("Enter filename (do NOT include file extenstion):");
+				String filename = stdinp.readLine();
+				BufferedReader br = new BufferedReader(new FileReader(filename + ".txt"));
+				String fileText = "";
+				String inputLine;
+				while ((inputLine = br.readLine()) != null) {
+					fileText += inputLine + "\n";
+				}
+				String transText = fileText.replaceAll(" ", "_");			
+				System.out.println("Test: " + transText);//test line
+				
+				return clientName + " put " + filename.trim() + " " + transText;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return "error!";
+			}
+		}
+
+		private static String delegate() {
+			try {
+				BufferedReader stdinp = new BufferedReader(new InputStreamReader(
+						System.in));
+				System.out
+						.println("Enter filename (do NOT include file extenstion):");
+				String filename = stdinp.readLine();
+				System.out.println("Enter user to add:");
+				String newUser = stdinp.readLine();
+				return clientName + " delegate " + filename.trim() + " "
+						+ newUser.trim();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return "error!";
+			}
+		}
 	
 	private static void printSocketInfo(SSLSocket s) {
 		System.out.println("Socket class: "+s.getClass());

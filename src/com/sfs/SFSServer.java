@@ -9,18 +9,28 @@ import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.*;
 
 import org.apache.log4j.Logger;
 import org.bouncycastle.openssl.PEMReader;
 
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
+
 import com.sfs.util.Properties;
 import com.sfs.util.Utilities;
 public class SFSServer {
 	
 	private static Logger logger = Logger.getLogger(SFSServer.class);
+	private static PublicKey pubKey;
    public static void main(String[] args) {
 	   
 	   if (args.length<2) {
@@ -53,7 +63,7 @@ public class SFSServer {
 				String keyStorePassword = "sfs" + serverName;
 				Utilities.pemEncodeToFile(privKeyFileName, KPair.getPrivate(), null);
 				PublicKey publicK = KPair.getPublic();
-
+				pubKey = publicK;
 				logger.info("Public key for server " + serverName + "is :" + publicK.toString());
 
 				byte[] publicKByteArr = publicK.getEncoded();
@@ -138,6 +148,7 @@ public class SFSServer {
                 KeyPair key = (KeyPair) kr.readObject();
                 PrivateKey serverPrivateKey = key.getPrivate();
                 PublicKey serverPublicKey = key.getPublic();
+				pubKey = serverPublicKey;
                 KeyStore ksKeys = KeyStore.getInstance("JKS");
                 String ksFile = Properties.serverKeyStoreLocation + "server.jks";
                 ksKeys.load(new FileInputStream(ksFile),args[1].toCharArray());
@@ -160,8 +171,191 @@ public class SFSServer {
             
             logger.info("Server started at 9997");
 		}
+		
+		//start handeling requests
+		try {
+			KeyStore ks = KeyStore.getInstance("JKS");
+            String ksFile = Properties.serverKeyStoreLocation + "server.jks";
+			ks.load(new FileInputStream(ksFile), args[1].toCharArray());
+			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+			kmf.init(ks, args[1].toCharArray());
+			SSLContext sc = SSLContext.getInstance("SSL");
+			sc.init(kmf.getKeyManagers(), null, null);
+			SSLServerSocketFactory ssf = sc.getServerSocketFactory();
+			SSLServerSocket s = (SSLServerSocket) ssf.createServerSocket(8888);
+			s.setNeedClientAuth(true);
+			printServerSocketInfo(s);
+			SSLSocket c;
+			//**********************CHANGE ME PUBLIC KEY*********************
+			byte[] pubicKey = pubKey.getEncoded();
+			//*****************************************************
 
+			while (true) {
+				c = (SSLSocket) s.accept();
+				System.out.println("Accepted a connection"); // debug line
+
+				BufferedWriter w = new BufferedWriter(new OutputStreamWriter(c.getOutputStream()));
+				BufferedReader r = new BufferedReader(new InputStreamReader(c.getInputStream()));
+				String com = r.readLine();
+				System.out.println("Command: " + com);//debug line
+				String command[];
+				command = com.split(" ");
+				System.out.println("User: " + command[0]);
+				// start of the parsing for commands
+				if (command[1].equals("get")) {
+					System.out.println("Went into get");
+					File file = new File(command[2] + ".txt");
+					File filemeta = new File(command[2] + "-meta.txt");
+					if (file.exists() && filemeta.exists()) {
+						try {
+							String encTextMeta = "", plainTextMeta, plainText, encText;
+							String metaData[];
+							BufferedReader br = new BufferedReader(new FileReader(command[2] + "-meta.txt"));
+							String inputLine;
+							while ((inputLine = br.readLine()) != null) {
+								encTextMeta += inputLine + "\n";
+							}
+							br.close();
+							metaData = encTextMeta.split("\n");
+							plainTextMeta = decrypt(metaData[0], pubicKey);
+							metaData[0] = plainTextMeta;
+							System.out.println(Arrays.toString(metaData));//debug line
+							for (int i = 1; i < metaData.length; ++i) {
+								if (command[0].equals(metaData[i])) {
+									BufferedReader br2 = new BufferedReader(new FileReader(command[2] + ".txt"));
+									encText = br2.readLine();
+									br2.close();
+									plainText = decrypt(encText, metaData[0].getBytes());
+									w.write(plainText, 0, plainText.length());
+									w.newLine();
+									w.flush();
+								}
+							}
+						} catch (Exception e) {
+
+						}
+					}
+				} else if (command[1].equals("put")) {
+					System.out.println("Went into put");
+					try {
+						String encText;
+						String encMeta;
+						String fileText = command[3].replaceAll("_", " ");
+						
+						byte[] hash = hasher(fileText);
+						String hashString = new String(hash);
+						// encrypt the file and the meta file
+						encText = encrypt(fileText, hash);
+						encMeta = encrypt(hashString, pubicKey);
+						encMeta = encMeta  + "\n" + command[0];
+						File file = new File(command[2] + ".txt");
+						File filemeta = new File(command[2] + "-meta.txt");
+						if (!file.exists()) {
+							file.createNewFile();
+						}
+						if (!filemeta.exists()) {
+							filemeta.createNewFile();
+						}
+						FileWriter fw = new FileWriter(file.getAbsoluteFile());
+						FileWriter fw2 = new FileWriter(filemeta.getAbsoluteFile());
+						BufferedWriter bw = new BufferedWriter(fw);
+						BufferedWriter bw2 = new BufferedWriter(fw2);
+						bw.write(encText);
+						bw2.write(encMeta);
+						bw.close();
+						bw2.close();
+						
+						w.write("Successfully put " + command[2], 0, ("Successfully put " + command[2]).length());
+						w.newLine();
+						w.flush();
+					} catch (Exception e) {
+
+					}
+				} else if (command[1].equals("delegate")) {
+					System.out.println("Went into delegate");
+					File filemeta = new File(command[2] + "-meta.txt");
+					if (filemeta.exists()) {
+						try {
+							String encTextMeta = "";
+							String metaData[];
+							BufferedReader br = new BufferedReader(new FileReader(command[2] + "-meta.txt"));
+							String inputLine;
+							while ((inputLine = br.readLine()) != null) {
+								encTextMeta += inputLine + "\n";
+							}
+							br.close();
+							metaData = encTextMeta.split("\n");
+							System.out.println("meta: " + Arrays.toString(metaData));//debug line
+							for (int i = 1; i < metaData.length; ++i) {
+								if (command[0].equals(metaData[i])) {
+									encTextMeta = encTextMeta + "\n" + command[3];
+									FileWriter fileWritter = new FileWriter(filemeta.getName());
+									BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+									bufferWritter.write(encTextMeta);
+									bufferWritter.close();
+									
+									w.write("Successfully added " + command[3], 0, ("Successfully added " + command[3]).length());
+									w.newLine();
+									w.flush();
+								}
+							}
+						} catch (Exception e) {
+
+						}
+					}
+				} else {
+					w.write("You made a type!", 0, ("You made a type!").length());
+					w.newLine();
+					w.flush();
+				}
+			}
+
+		} catch (Exception e) {
+			System.err.println(e.toString());
+		}
    }
+   
+   public static String encrypt(String data, byte[] key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+		String strCipherText = new String();
+
+		SecretKeySpec secretKey = new SecretKeySpec(key, "AES");
+		Cipher aesCipher = Cipher.getInstance("AES");
+
+		aesCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+
+		byte[] byteDataToEncrypt = data.getBytes();
+		byte[] byteCipherText = aesCipher.doFinal(byteDataToEncrypt);
+		strCipherText = new BASE64Encoder().encode(byteCipherText);
+
+		return strCipherText;
+	}
+
+	public static String decrypt(String cipherText, byte[] key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IOException {
+		String strDecryptedText = new String();
+		SecretKeySpec secretKey = new SecretKeySpec(key, "AES");
+		Cipher aesCipher = Cipher.getInstance("AES");
+		aesCipher.init(Cipher.DECRYPT_MODE, secretKey);
+		byte[] byteDecryptedText = aesCipher.doFinal(new BASE64Decoder().decodeBuffer(cipherText));
+		strDecryptedText = new String(byteDecryptedText);
+		return strDecryptedText;
+	}
+
+	public static byte[] hasher(String fi) {
+		byte[] hash = { -1 };
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			hash = digest.digest(fi.getBytes("UTF-8"));
+
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return hash;
+	}
+   
    private static void printSocketInfo(SSLSocket s) {
       System.out.println("Socket class: "+s.getClass());
       System.out.println("   Remote address = "

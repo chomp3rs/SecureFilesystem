@@ -72,8 +72,7 @@ public class SslSocketClientRevised {
 		}
 	}
 
-	// userid command additional1(filename or username) additional2(file
-	// contents as byte string)
+	// userid command additional1(filename or username) additional2(file contents)
 	private static String get() {
 		try {
 			BufferedReader stdinp = new BufferedReader(new InputStreamReader(
