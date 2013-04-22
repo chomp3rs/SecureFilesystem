@@ -1,0 +1,83 @@
+INFO main com.sfs.SFSServer - Certificate exists : Server Side
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSServer - Certificate exists : Server Side
+INFO main com.sfs.SFSServer - Server started at 9997
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSServer - Server: Accepted a connection
+INFO main com.sfs.SFSClient - Client connected
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSServer - Certificate exists : Server Side
+INFO main com.sfs.SFSServer - Server started at 9997
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSServer - Server: Accepted a connection
+INFO main com.sfs.SFSClient - Client connected
+INFO main com.sfs.SFSServer - Certificate exists : Server Side
+INFO main com.sfs.SFSServer - Server started at 9997
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSServer - Server: Accepted a connection
+INFO main com.sfs.SFSClient - Client connected
+INFO main com.sfs.SFSServer - Certificate exists : Server Side
+INFO main com.sfs.SFSServer - Server started at 9997
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSServer - Server: Accepted a connection
+INFO main com.sfs.SFSClient - Client connected
+INFO main com.sfs.SFSServer - Certificate exists : Server Side
+INFO main com.sfs.SFSServer - Server started at 9997
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSServer - Server: Accepted a connection
+INFO main com.sfs.SFSClient - Client connected
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSServer - Certificate exists : Server Side
+INFO main com.sfs.SFSServer - Server started at 9997
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSServer - Server: Accepted a connection
+INFO main com.sfs.SFSClient - Client connected
+INFO main com.sfs.SFSServer - Certificate exists : Server Side
+INFO main com.sfs.SFSServer - Server started at 9997
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSServer - Server: Accepted a connection
+INFO main com.sfs.SFSClient - Client connected
+INFO main com.sfs.SFSServer - Certificate exists : Server Side
+INFO main com.sfs.SFSServer - Server started at 9997
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSServer - Server: Accepted a connection
+INFO main com.sfs.SFSClient - Client connected
+INFO main com.sfs.SFSServer - Certificate exists : Server Side
+INFO main com.sfs.SFSServer - Server started at 9997
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSServer - Server: Accepted a connection
+INFO main com.sfs.SFSClient - Client connected
+INFO main com.sfs.SFSClient - File does not exist, talk to the CA for client02
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.ca.SFSCA - Inside SFS CA
+INFO main com.sfs.ca.SFSCA - CA started at port 9999!
+INFO main com.sfs.ca.SFSCA - Spawning
+INFO main com.sfs.SFSClient - File does not exist, talk to the CA for client02
+INFO main com.sfs.ca.SFSCA - Done
+INFO main com.sfs.ca.SFSCA - Spawning
+INFO Thread-0 com.sfs.ca.SFSCAThread - Spawned a CA Worker thread on port : 9999
+INFO Thread-0 com.sfs.ca.SFSCAThread - NewCert command issued fromclient02
+INFO Thread-0 com.sfs.ca.SFSCAThread - Reading public key from the host
+INFO main com.sfs.SFSClient - Public key for client client02is :Sun RSA public key, 1024 bits
+  modulus: 112542328151039257103524641565977580923182991652358703928143851820703098259796759870571790497103972341593754399363238591377286933462556493551312099894040720234617403565279610407606418981670488571364201220929504739995235806230000706131084082696817935879805697886796926045849036970900588329334257315380925248493
+  public exponent: 65537
+INFO main com.sfs.SFSClient - Size :162
+INFO Thread-0 com.sfs.ca.SFSCAThread - Sun RSA public key, 1024 bits
+  modulus: 112542328151039257103524641565977580923182991652358703928143851820703098259796759870571790497103972341593754399363238591377286933462556493551312099894040720234617403565279610407606418981670488571364201220929504739995235806230000706131084082696817935879805697886796926045849036970900588329334257315380925248493
+  public exponent: 65537
+INFO Thread-0 com.sfs.ca.SFSCAThread - Sending Certificate ...
+INFO main com.sfs.SFSClient - Certificate generated successfully
+INFO main com.sfs.SFSClient - Certificate length :714
+INFO Thread-0 com.sfs.ca.SFSCAThread - Updating server key store ...
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO Thread-0 com.sfs.ca.SFSCAThread - Updating client key store with the server certificate
+INFO Thread-0 com.sfs.ca.SFSCAThread - 
+INFO main com.sfs.SFSServer - Server: Accepted a connection
+INFO main com.sfs.SFSClient - Client connected
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSServer - Server: Accepted a connection
+INFO main com.sfs.SFSClient - Client connected
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSServer - Server: Accepted a connection
+INFO main com.sfs.SFSClient - Client connected
