@@ -1,0 +1,93 @@
+INFO main com.sfs.ca.SFSCA - Inside SFS CA
+INFO main com.sfs.ca.SFSCA - CA started at port 9999!
+INFO main com.sfs.ca.SFSCA - Spawning
+INFO main com.sfs.SFSClient - File does not exist, talk to the CA for client01
+INFO main com.sfs.ca.SFSCA - Done
+INFO main com.sfs.ca.SFSCA - Spawning
+INFO Thread-0 com.sfs.ca.SFSCAThread - Spawned a CA Worker thread on port : 9999
+INFO Thread-0 com.sfs.ca.SFSCAThread - NewCert command issued fromclient01
+INFO Thread-0 com.sfs.ca.SFSCAThread - Reading public key from the host
+INFO main com.sfs.SFSClient - Public key for client client01is :Sun RSA public key, 1024 bits
+  modulus: 120328244999949000019206072834171034936006332649023996296739556690643098283844713379516278322244491235488389943124633649252127317705404610376282673057680632409985485627781587257536121863469174275140349485215744503039532991502975608125381675600340579470906200745344817500060098092730818123549539498806325630229
+  public exponent: 65537
+INFO main com.sfs.SFSClient - Size :162
+INFO Thread-0 com.sfs.ca.SFSCAThread - Sun RSA public key, 1024 bits
+  modulus: 120328244999949000019206072834171034936006332649023996296739556690643098283844713379516278322244491235488389943124633649252127317705404610376282673057680632409985485627781587257536121863469174275140349485215744503039532991502975608125381675600340579470906200745344817500060098092730818123549539498806325630229
+  public exponent: 65537
+INFO Thread-0 com.sfs.ca.SFSCAThread - Sending Certificate ...
+INFO main com.sfs.SFSClient - Certificate generated successfully
+INFO main com.sfs.SFSClient - Certificate length :714
+INFO Thread-0 com.sfs.ca.SFSCAThread - Updating server key store ...
+INFO Thread-0 com.sfs.ca.SFSCAThread - Updating client key store with the server certificate
+INFO Thread-0 com.sfs.ca.SFSCAThread - 
+INFO main com.sfs.ca.SFSCA - Inside SFS CA
+INFO main com.sfs.ca.SFSCA - CA started at port 9999!
+INFO main com.sfs.ca.SFSCA - Spawning
+INFO main com.sfs.SFSClient - File does not exist, talk to the CA for client01
+INFO main com.sfs.ca.SFSCA - Done
+INFO main com.sfs.ca.SFSCA - Spawning
+INFO Thread-0 com.sfs.ca.SFSCAThread - Spawned a CA Worker thread on port : 9999
+INFO Thread-0 com.sfs.ca.SFSCAThread - NewCert command issued fromclient01
+INFO Thread-0 com.sfs.ca.SFSCAThread - Reading public key from the host
+INFO main com.sfs.SFSClient - Public key for client client01is :Sun RSA public key, 1024 bits
+  modulus: 141744910566424550408987343752908577857291215365166508426382147102429689529787595808870219965555356001448796460836592871941544291304584427232039208732133872797494914287896246052143912458298196750999860214235174432280380617341673183191850201730964224909679982426656698458984310248763023503150780385712681126987
+  public exponent: 65537
+INFO main com.sfs.SFSClient - Size :162
+INFO Thread-0 com.sfs.ca.SFSCAThread - Sun RSA public key, 1024 bits
+  modulus: 141744910566424550408987343752908577857291215365166508426382147102429689529787595808870219965555356001448796460836592871941544291304584427232039208732133872797494914287896246052143912458298196750999860214235174432280380617341673183191850201730964224909679982426656698458984310248763023503150780385712681126987
+  public exponent: 65537
+INFO Thread-0 com.sfs.ca.SFSCAThread - Sending Certificate ...
+INFO main com.sfs.SFSClient - Certificate generated successfully
+INFO main com.sfs.SFSClient - Certificate length :714
+INFO Thread-0 com.sfs.ca.SFSCAThread - Updating server key store ...
+INFO Thread-0 com.sfs.ca.SFSCAThread - Updating client key store with the server certificate
+INFO Thread-0 com.sfs.ca.SFSCAThread - 
+INFO main com.sfs.ca.SFSCA - Inside SFS CA
+INFO main com.sfs.ca.SFSCA - CA started at port 9999!
+INFO main com.sfs.ca.SFSCA - Spawning
+INFO main com.sfs.SFSServer - File does not exist, talk to the CA for server
+INFO main com.sfs.ca.SFSCA - Done
+INFO main com.sfs.ca.SFSCA - Spawning
+INFO Thread-0 com.sfs.ca.SFSCAThread - Spawned a CA Worker thread on port : 9999
+INFO Thread-0 com.sfs.ca.SFSCAThread - NewCert command issued fromserver
+INFO Thread-0 com.sfs.ca.SFSCAThread - Reading public key from the host
+INFO main com.sfs.SFSServer - Public key for server serveris :Sun RSA public key, 1024 bits
+  modulus: 95489420430264313072070890893375583942954424581464658405793142491676043788559479928780807175350713015304238905766115708858382365879282084176612402007330579770127081369934591980235759759093770564541066373734801587803679666722533998570063875537186643165609834093869502256533491945504836238181105315269666197753
+  public exponent: 65537
+INFO main com.sfs.SFSServer - Size :162
+INFO Thread-0 com.sfs.ca.SFSCAThread - Sun RSA public key, 1024 bits
+  modulus: 95489420430264313072070890893375583942954424581464658405793142491676043788559479928780807175350713015304238905766115708858382365879282084176612402007330579770127081369934591980235759759093770564541066373734801587803679666722533998570063875537186643165609834093869502256533491945504836238181105315269666197753
+  public exponent: 65537
+INFO Thread-0 com.sfs.ca.SFSCAThread - Sending Certificate ...
+INFO main com.sfs.SFSServer - Certificate generated successfully
+INFO main com.sfs.SFSServer - Certificate length :712
+INFO Thread-0 com.sfs.ca.SFSCAThread - 
+INFO main com.sfs.ca.SFSCA - Inside SFS CA
+INFO main com.sfs.ca.SFSCA - CA started at port 9999!
+INFO main com.sfs.ca.SFSCA - Spawning
+INFO main com.sfs.SFSClient - File does not exist, talk to the CA for client01
+INFO main com.sfs.ca.SFSCA - Done
+INFO main com.sfs.ca.SFSCA - Spawning
+INFO Thread-0 com.sfs.ca.SFSCAThread - Spawned a CA Worker thread on port : 9999
+INFO Thread-0 com.sfs.ca.SFSCAThread - NewCert command issued fromclient01
+INFO Thread-0 com.sfs.ca.SFSCAThread - Reading public key from the host
+INFO main com.sfs.SFSClient - Public key for client client01is :Sun RSA public key, 1024 bits
+  modulus: 100573387966752231954316736729257544631360992950243744867459979390123328928249722538448478680734488453067898524135189254003192483568717974663785507152012601673827195183641289813134460331763692671801239794682269035848692200162247327868442179926514281059147377345893968907401118244339685280411293719239106803217
+  public exponent: 65537
+INFO main com.sfs.SFSClient - Size :162
+INFO Thread-0 com.sfs.ca.SFSCAThread - Sun RSA public key, 1024 bits
+  modulus: 100573387966752231954316736729257544631360992950243744867459979390123328928249722538448478680734488453067898524135189254003192483568717974663785507152012601673827195183641289813134460331763692671801239794682269035848692200162247327868442179926514281059147377345893968907401118244339685280411293719239106803217
+  public exponent: 65537
+INFO Thread-0 com.sfs.ca.SFSCAThread - Sending Certificate ...
+INFO main com.sfs.SFSClient - Certificate generated successfully
+INFO main com.sfs.SFSClient - Certificate length :714
+INFO Thread-0 com.sfs.ca.SFSCAThread - Updating server key store ...
+INFO Thread-0 com.sfs.ca.SFSCAThread - Updating client key store with the server certificate
+INFO Thread-0 com.sfs.ca.SFSCAThread - 
+INFO main com.sfs.SFSServer - Certificate exists : Server Side
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSServer - Certificate exists : Server Side
+INFO main com.sfs.SFSServer - Server started at 9997
+INFO main com.sfs.SFSServer - Certificate exists : Server Side
+INFO main com.sfs.SFSClient - Certificate exists : Client Side
+INFO main com.sfs.SFSClient - Client connected
